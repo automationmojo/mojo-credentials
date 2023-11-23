@@ -1,6 +1,6 @@
 [tool.poetry]
-name = "<package name>"
-description = "<package description>"
+name = "mojo-credentials"
+description = "Automation Mojo Credentials Package"
 version = "0.0.1"
 authors = []
 readme = "README.rst"
