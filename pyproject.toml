@@ -17,6 +17,7 @@ packages = [{include="mojo", from="source/packages"}]
 
 [tool.poetry.dependencies]
 python = ">=3.8,<4.0"
+mojo-config = "^0.0.30"
 
 [tool.poetry.group.dev.dependencies]
 myst-parser = "^0.18.1"
