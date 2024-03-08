@@ -23,11 +23,6 @@ import os
 
 from mojo.errors.exceptions import ConfigurationError
 
-from mojo.collections.contextpaths import ContextPaths
-from mojo.collections.wellknown import ContextSingleton
-
-from mojo.config.configurationmaps import CONFIGURATION_MAPS
-
 from mojo.credentials.azureclientsecretcredential import AzureClientSecretCredential
 from mojo.credentials.basiccredential import BasicCredential
 from mojo.credentials.sshcredential import SshCredential
@@ -37,22 +32,10 @@ logger = logging.getLogger()
 
 class CredentialManager:
 
-    _instance = None
-    _initialized = False
-
-    def __new__(cls, *args, **kwargs):
-        if cls._instance is None:
-            cls._instance = super(CredentialManager, cls).__new__(cls, *args, **kwargs)
-        return cls._instance
-
     def __init__(self):
-        thisType = type(self)
 
-        if not thisType._initialized:
-            thisType._initialized = True
-
-            self._credentials = {}
-            self._initialize_credentials()
+        self._credentials = {}
+        self._source_uris = []
 
         return
 
@@ -66,106 +49,106 @@ class CredentialManager:
         """
         
         if credkey not in self._credentials:
-            ctx = ContextSingleton()
 
             errmsg_lines = [
-                f"Error missing credential '{credkey}'.",
-                "CREDENTIAL URIS:"
+                f"Error missing credential '{credkey}'."
             ]
         
-            for cfile in ctx.lookup(ContextPaths.CONFIG_CREDENTIAL_URIS, []):
-                errmsg_lines.append(f"    {cfile}")
+            if len(self._source_uris) > 0:
+                errmsg_lines.append("CREDENTIAL URIS:")
+
+                for cfile in self._source_uris:
+                    errmsg_lines.append(f"    {cfile}")
 
             errmsg = os.linesep.join(errmsg_lines)
+
             raise ConfigurationError(errmsg)
         
         cred = self._credentials[credkey]
         
         return cred
 
-    def _initialize_credentials(self):
+    def load_credentials(self, credential_info: dict, source_uris: Optional[List[str]] = None):
         """
         """
 
-        if CONFIGURATION_MAPS.CREDENTIAL_CONFIGURATION_MAP is not None and \
-            len(CONFIGURATION_MAPS.CREDENTIAL_CONFIGURATION_MAP) > 0:
+        if source_uris != None:
+            self._source_uris.extend(source_uris)
 
-            credential_info = CONFIGURATION_MAPS.CREDENTIAL_CONFIGURATION_MAP
+        try:
+            credentials_list = credential_info["credentials"]
+            errors, warnings = self._validate_credentials(credentials_list)
 
-            try:
-                credentials_list = credential_info["credentials"]
-                errors, warnings = self._validate_credentials(credentials_list)
+            if len(errors) == 0:
+                for credential in credentials_list:
+                    # Copy the credential so if we modify it, we dont modify the
+                    # original declaration.
+                    credential = credential.copy()
 
-                if len(errors) == 0:
-                    for credential in credentials_list:
-                        # Copy the credential so if we modify it, we dont modify the
-                        # original declaration.
-                        credential = credential.copy()
+                    if "identifier" not in credential:
+                        errmsg = "Credential items in 'environment/credentials' must have an 'identifier' member."
+                        raise ConfigurationError(errmsg)
+                    ident = credential["identifier"]
 
-                        if "identifier" not in credential:
-                            errmsg = "Credential items in 'environment/credentials' must have an 'identifier' member."
-                            raise ConfigurationError(errmsg)
-                        ident = credential["identifier"]
+                    if "category" not in credential:
+                        errmsg = "Credential items in 'environment/credentials' must have an 'category' member."
+                        raise ConfigurationError(errmsg)
+                    category = credential["category"]
+                    del credential["category"]
 
-                        if "category" not in credential:
-                            errmsg = "Credential items in 'environment/credentials' must have an 'category' member."
-                            raise ConfigurationError(errmsg)
-                        category = credential["category"]
-                        del credential["category"]
+                    if isinstance(category, list):
+                        categories = list(category)
+                        credential["categories"] = categories
 
-                        if isinstance(category, list):
-                            categories = list(category)
-                            credential["categories"] = categories
+                        username = credential["username"]
+                        password = credential["password"]
 
-                            username = credential["username"]
-                            password = credential["password"]
+                        BasicCredential.validate(credential)
+                        credobj = BasicCredential(identifier=ident, categories=categories,
+                                                    username=username, password=password)
+                        self._credentials[ident] = credobj
 
-                            BasicCredential.validate(credential)
-                            credobj = BasicCredential(identifier=ident, categories=categories,
-                                                        username=username, password=password)
+                    else:
+                        credential["categories"] = [category]
+
+                        if category == 'azure-client-secret':
+                            AzureClientSecretCredential.validate(credential)
+                            credobj = AzureClientSecretCredential(**credential)
                             self._credentials[ident] = credobj
-
+                        elif category == "basic" or category == "rest-basic":
+                            BasicCredential.validate(credential)
+                            credobj = BasicCredential(**credential)
+                            self._credentials[ident] = credobj
+                        elif category == "ssh":
+                            SshCredential.validate(credential)
+                            credobj = SshCredential(**credential)
+                            self._credentials[ident] = credobj
+                        elif category == "wifi-choice":
+                            WifiChoiceCredential.validate(credential)
+                            credobj = WifiChoiceCredential(**credential)
+                            self._credentials[ident] = credobj
                         else:
-                            credential["categories"] = [category]
+                            warnmsg = f"Unknown category '{category}' found in credential '{ident}'"
+                            logger.warn(warnmsg)
 
-                            if category == 'azure-client-secret':
-                                AzureClientSecretCredential.validate(credential)
-                                credobj = AzureClientSecretCredential(**credential)
-                                self._credentials[ident] = credobj
-                            elif category == "basic" or category == "rest-basic":
-                                BasicCredential.validate(credential)
-                                credobj = BasicCredential(**credential)
-                                self._credentials[ident] = credobj
-                            elif category == "ssh":
-                                SshCredential.validate(credential)
-                                credobj = SshCredential(**credential)
-                                self._credentials[ident] = credobj
-                            elif category == "wifi-choice":
-                                WifiChoiceCredential.validate(credential)
-                                credobj = WifiChoiceCredential(**credential)
-                                self._credentials[ident] = credobj
-                            else:
-                                warnmsg = f"Unknown category '{category}' found in credential '{ident}'"
-                                logger.warn(warnmsg)
+            else:
+                errmsg_lines = [
+                    f"Errors found in credentials.",
+                    "ERRORS:"
+                ]
+                for err in errors:
+                    errmsg_lines.append(f"    {err}")
 
-                else:
-                    errmsg_lines = [
-                        f"Errors found in credentials.",
-                        "ERRORS:"
-                    ]
-                    for err in errors:
-                        errmsg_lines.append(f"    {err}")
+                errmsg_lines.append("WARNINGS:")
+                for warn in warnings:
+                    errmsg_lines.append(f"    {warn}")
 
-                    errmsg_lines.append("WARNINGS:")
-                    for warn in warnings:
-                        errmsg_lines.append(f"    {warn}")
-
-                    errmsg = os.linesep.join(errmsg_lines)
-                    raise ConfigurationError(errmsg)
-
-            except KeyError:
-                errmsg = f"No 'credentials' field found."
+                errmsg = os.linesep.join(errmsg_lines)
                 raise ConfigurationError(errmsg)
+
+        except KeyError:
+            errmsg = f"No 'credentials' field found."
+            raise ConfigurationError(errmsg)
 
         return
 
