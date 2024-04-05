@@ -144,6 +144,10 @@ class CredentialManager:
                     for warn in warnings:
                         errmsg_lines.append(f"    {warn}")
 
+                    errmsg_lines.append("SOURCE_URIS:")
+                    for suri in self._source_uris:
+                        errmsg_lines.append(f"    {suri}")
+
                     errmsg = os.linesep.join(errmsg_lines)
                     raise ConfigurationError(errmsg)
 
