@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "mojo-credentials"
 description = "Automation Mojo Credentials Package"
-version = "1.3.4"
+version = "1.3.5"
 authors = []
 readme = "README.rst"
 license = "LICENSE.txt"

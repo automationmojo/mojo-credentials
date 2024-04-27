@@ -23,6 +23,7 @@ import os
 
 from mojo.errors.exceptions import ConfigurationError
 
+from mojo.credentials.apitokencredential import ApiTokenCredential
 from mojo.credentials.azureclientsecretcredential import AzureClientSecretCredential
 from mojo.credentials.basiccredential import BasicCredential
 from mojo.credentials.sshcredential import SshCredential
@@ -112,7 +113,11 @@ class CredentialManager:
                         else:
                             credential["categories"] = [category]
 
-                            if category == 'azure-client-secret':
+                            if category == "api-token":
+                                ApiTokenCredential.validate(credential)
+                                credobj = ApiTokenCredential(**credential)
+                                self._credentials[ident] = credobj
+                            elif category == 'azure-client-secret':
                                 AzureClientSecretCredential.validate(credential)
                                 credobj = AzureClientSecretCredential(**credential)
                                 self._credentials[ident] = credobj
