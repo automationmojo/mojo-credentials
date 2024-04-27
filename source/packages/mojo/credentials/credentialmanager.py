@@ -16,7 +16,7 @@ __email__ = "myron.walker@gmail.com"
 __status__ = "Development" # Prototype, Development or Production
 __license__ = "MIT"
 
-from typing import List, Optional
+from typing import List, Optional, Union
 
 import logging
 import os
@@ -44,7 +44,7 @@ class CredentialManager:
     def credentials(self):
         return self._credentials
 
-    def lookup_credential(self, credkey: str) -> BasicCredential:
+    def lookup_credential(self, credkey: str) -> Union[ApiTokenCredential, AzureClientSecretCredential, BasicCredential, SshCredential, WifiChoiceCredential]:
         """
             Lookup a credential by key.
         """
