@@ -128,7 +128,7 @@ class CredentialManager:
                                 self._credentials[ident] = credobj
                             elif category == "personal-api-token":
                                 PersonalApiTokenCredential.validate(credential)
-                                credobj = PersonalApiTokenCredential(**credobj)
+                                credobj = PersonalApiTokenCredential(**credential)
                                 lf._credentials[ident] = credobj
                             elif category == "ssh":
                                 SshCredential.validate(credential)
