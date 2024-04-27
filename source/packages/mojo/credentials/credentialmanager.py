@@ -26,6 +26,7 @@ from mojo.errors.exceptions import ConfigurationError
 from mojo.credentials.apitokencredential import ApiTokenCredential
 from mojo.credentials.azureclientsecretcredential import AzureClientSecretCredential
 from mojo.credentials.basiccredential import BasicCredential
+from mojo.credentials.personalapitokencredential import PersonalApiTokenCredential
 from mojo.credentials.sshcredential import SshCredential
 from mojo.credentials.wifichoicecredential import WifiChoiceCredential
 
@@ -44,7 +45,7 @@ class CredentialManager:
     def credentials(self):
         return self._credentials
 
-    def lookup_credential(self, credkey: str) -> Union[ApiTokenCredential, AzureClientSecretCredential, BasicCredential, SshCredential, WifiChoiceCredential]:
+    def lookup_credential(self, credkey: str) -> Union[ApiTokenCredential, AzureClientSecretCredential, BasicCredential, PersonalApiTokenCredential, SshCredential, WifiChoiceCredential]:
         """
             Lookup a credential by key.
         """
@@ -125,6 +126,10 @@ class CredentialManager:
                                 BasicCredential.validate(credential)
                                 credobj = BasicCredential(**credential)
                                 self._credentials[ident] = credobj
+                            elif category == "personal-api-token":
+                                PersonalApiTokenCredential.validate(credential)
+                                credobj = PersonalApiTokenCredential(**credobj)
+                                lf._credentials[ident] = credobj
                             elif category == "ssh":
                                 SshCredential.validate(credential)
                                 credobj = SshCredential(**credential)

@@ -1,5 +1,5 @@
 """
-.. module:: apitokencredential
+.. module:: personalapitokencredential
     :platform: Darwin, Linux, Unix, Windows
     :synopsis: Module that contains the :class:`BasicCredential` which is a simple
                username and password based credential.
@@ -24,18 +24,19 @@ from mojo.errors.exceptions import ConfigurationError
 
 from mojo.credentials.basecredential import BaseCredential
 
-class ApiTokenCredential(BaseCredential):
+class PersonalApiTokenCredential(BaseCredential):
     """
-        The :class:`ApiTokenCredential` is a container object for an api token credential.
+        The :class:`PersonalApiTokenCredential` is a container object for a personal api token credential.
 
         .. code:: yaml
             "identifier": "jira-token"
-            "category": "api-token"
+            "category": "personal-api-token"
+            "username": "some.guy@google.com"
             "token": "B130909CD9744F1E8679755034F9E70B08519F16C3DE46FCBFE82117F2794BA1"
 
     """
 
-    def __init__(self, *, identifier: str, categories: List[str], token: str, role: Optional[str] = "priv"):
+    def __init__(self, *, identifier: str, categories: List[str], username: str, token: str, role: Optional[str] = "priv"):
         """
             :param identifier: The identifier that is used to reference this credential.  (required)
             :param categories: The categories of authentication that are supported by the credential
@@ -44,12 +45,17 @@ class ApiTokenCredential(BaseCredential):
         super().__init__(identifier=identifier, categories=categories, role=role)
 
         if "api-token" not in categories:
-            raise ValueError("The ApiTokenCredential should only be given credentials of category 'api-token'.")
+            raise ValueError("The PersonalApiTokenCredential should only be given credentials of category 'api-token'.")
         if len(token) == 0:
-            raise ValueError("The ApiTokenCredential constructor requires a 'token' parameter be provided.")
+            raise ValueError("The PersonalApiTokenCredential constructor requires a 'token' parameter be provided.")
         
+        self._username = username
         self._token = token
         return
+
+    @property
+    def username(self):
+        return self._username
 
     @property
     def token(self):
@@ -60,15 +66,18 @@ class ApiTokenCredential(BaseCredential):
 
         errmsg_lines = []
 
+        if "username" not in cred_info:
+            errmsg_lines.append("    * missing 'username' in personal api token credential.")
+        
         if "token" not in cred_info:
-                errmsg_lines.append("    * missing 'token' in api token credential.")
+            errmsg_lines.append("    * missing 'token' in personal api token credential.")
 
         if len(errmsg_lines) > 0:
             identifier = "????"
             if "identifier" in cred_info:
                 identifier = cred_info["identifier"]
 
-            errmsg = "Errors found while validating the '{}' api token credential:".format(identifier)
+            errmsg = "Errors found while validating the '{}' personal api token credential:".format(identifier)
             errmsg_lines.insert(0, errmsg)
             errmsg = os.linesep.join(errmsg_lines)
 

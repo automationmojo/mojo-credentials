@@ -130,7 +130,7 @@ if [ ! -f $INITIALIZED_FILE ]; then
 
     if [ ! -f $VIRTUAL_ENV_DIR/bin/activate ]; then
         
-        poetry env use $PYTHON_VERSION
+        poetry env use python3
     else
         echo "ERROR: Unable to create or find the python virtual environment"
         exit 1
