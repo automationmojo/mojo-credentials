@@ -20,6 +20,7 @@ import os
 from mojo.errors.exceptions import ConfigurationError
 
 from mojo.credentials.apitokencredential import ApiTokenCredential
+from mojo.credentials.awsaccesskey import AwsAccessKey
 from mojo.credentials.azureclientsecretcredential import AzureClientSecretCredential
 from mojo.credentials.basiccredential import BasicCredential
 from mojo.credentials.personalapitokencredential import PersonalApiTokenCredential
@@ -113,6 +114,10 @@ class CredentialManager:
                             if category == "api-token":
                                 ApiTokenCredential.validate(credential)
                                 credobj = ApiTokenCredential(**credential)
+                                self._credentials[ident] = credobj
+                            elif category == "aws-access-key":
+                                AwsAccessKey.validate(credential)
+                                credobj = AwsAccessKey(**credential)
                                 self._credentials[ident] = credobj
                             elif category == 'azure-client-secret':
                                 AzureClientSecretCredential.validate(credential)
