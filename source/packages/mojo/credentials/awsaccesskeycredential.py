@@ -20,7 +20,7 @@ from mojo.errors.exceptions import ConfigurationError
 
 from mojo.credentials.basecredential import BaseCredential
 
-class AwsAccessKey(BaseCredential):
+class AwsAccessKeyCredential(BaseCredential):
     """
         The :class:`AwsAccessKey` is a container object for an api token credential.
 

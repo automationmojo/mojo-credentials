@@ -1,8 +1,8 @@
 """
 .. module:: azureclientsecretcredential
     :platform: Darwin, Linux, Unix, Windows
-    :synopsis: Module that contains the :class:`BasicCredential` which is a simple
-               username and password based credential.
+    :synopsis: Module that contains the :class:`AzureClientSecretCredential` which is used
+    for application access to Azure.
 
 .. moduleauthor:: Myron Walker <myron.walker@gmail.com>
 """

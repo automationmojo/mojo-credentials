@@ -1,8 +1,8 @@
 """
 .. module:: apitokencredential
     :platform: Darwin, Linux, Unix, Windows
-    :synopsis: Module that contains the :class:`BasicCredential` which is a simple
-               username and password based credential.
+    :synopsis: Module that contains the :class:`ApiTokenCredential` which is a simple
+               to hold and api token.
 
 .. moduleauthor:: Myron Walker <myron.walker@gmail.com>
 """

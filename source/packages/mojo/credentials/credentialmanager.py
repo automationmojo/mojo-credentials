@@ -1,5 +1,5 @@
 """
-.. module:: basiccredential
+.. module:: credentialmanager
     :platform: Darwin, Linux, Unix, Windows
     :synopsis: Module that contains the :class:`CredentialManager` which is used to
                load credentials.
@@ -20,10 +20,11 @@ import os
 from mojo.errors.exceptions import ConfigurationError
 
 from mojo.credentials.apitokencredential import ApiTokenCredential
-from mojo.credentials.awsaccesskey import AwsAccessKey
+from mojo.credentials.awsaccesskeycredential import AwsAccessKeyCredential
 from mojo.credentials.azureclientsecretcredential import AzureClientSecretCredential
 from mojo.credentials.basiccredential import BasicCredential
 from mojo.credentials.personalapitokencredential import PersonalApiTokenCredential
+from mojo.credentials.publickeycredential import PublicKeyCredential
 from mojo.credentials.sshcredential import SshCredential
 from mojo.credentials.wifichoicecredential import WifiChoiceCredential
 
@@ -116,8 +117,8 @@ class CredentialManager:
                                 credobj = ApiTokenCredential(**credential)
                                 self._credentials[ident] = credobj
                             elif category == "aws-access-key":
-                                AwsAccessKey.validate(credential)
-                                credobj = AwsAccessKey(**credential)
+                                AwsAccessKeyCredential.validate(credential)
+                                credobj = AwsAccessKeyCredential(**credential)
                                 self._credentials[ident] = credobj
                             elif category == 'azure-client-secret':
                                 AzureClientSecretCredential.validate(credential)
@@ -130,6 +131,10 @@ class CredentialManager:
                             elif category == "personal-api-token":
                                 PersonalApiTokenCredential.validate(credential)
                                 credobj = PersonalApiTokenCredential(**credential)
+                                self._credentials[ident] = credobj
+                            elif category == "public-key":
+                                PublicKeyCredential.validate(credential)
+                                credobj = PublicKeyCredential(**credential)
                                 self._credentials[ident] = credobj
                             elif category == "ssh":
                                 SshCredential.validate(credential)
