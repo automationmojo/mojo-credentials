@@ -14,6 +14,8 @@ __credits__ = []
 
 from typing import List, Optional
 
+from mojo.errors.exceptions import ConfigurationError
+
 class BaseCredential:
     """
         The :class:`BaseCredential` is the base container object for credentials passed in the landscape
@@ -31,9 +33,9 @@ class BaseCredential:
             :param role: Identifies the role of the credential
         """
         if len(identifier) == 0:
-            raise ValueError("The BaseCredential constructor requires a 'identifier' parameter be provided.")
+            raise ConfigurationError("The BaseCredential constructor requires a 'identifier' parameter be provided.")
         if len(categories) == 0:
-            raise ValueError("The BaseCredential constructor requires a 'categories' parameter be provided.")
+            raise ConfigurationError("The BaseCredential constructor requires a 'categories' parameter be provided.")
 
         self._identifier = identifier
         self._categories = categories

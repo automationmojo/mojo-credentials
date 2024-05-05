@@ -42,9 +42,9 @@ class WifiChoiceCredential(BaseCredential):
         super().__init__(identifier=identifier, categories=categories, role=role)
 
         if "wifi-choice" not in categories:
-            raise ValueError("The WifiChoiceCredential should only be given credentials of category 'basic'.")
+            raise ConfigurationError("The WifiChoiceCredential should only be given credentials of category 'basic'.")
         if len(networks) == 0:
-            raise ValueError("The WifiChoiceCredential constructor should have at least one network.")
+            raise ConfigurationError("The WifiChoiceCredential constructor should have at least one network.")
 
         self._networks = networks
         return

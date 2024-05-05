@@ -41,11 +41,11 @@ class PublicKeyCredential(BaseCredential):
         super().__init__(identifier=identifier, categories=categories, role=role)
 
         if "public-key" not in categories:
-            raise ValueError("The PublicKeyCredential should only be given credentials of category 'public-key'.")
+            raise ConfigurationError("The PublicKeyCredential should only be given credentials of category 'public-key'.")
         if len(public) == 0:
-            raise ValueError("The PublicKeyCredential constructor requires a 'public' parameter be provided.")
+            raise ConfigurationError("The PublicKeyCredential constructor requires a 'public' parameter be provided.")
         if len(private) == 0:
-            raise ValueError("The PublicKeyCredential constructor requires a 'private' parameter be provided.")
+            raise ConfigurationError("The PublicKeyCredential constructor requires a 'private' parameter be provided.")
         
         self._public = public
         self._private = private

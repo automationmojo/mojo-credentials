@@ -12,7 +12,7 @@ __copyright__ = "Copyright 2023, Myron W Walker"
 __credits__ = []
 
 
-from typing import List, Optional
+from typing import List, Optional, Union
 
 import os
 
@@ -36,8 +36,8 @@ class SshCredential(BaseCredential):
     """
 
     def __init__(self, *, identifier: str, categories: List[str], role: Optional[str] = "priv", username: str = "",
-                 password: Optional[str] = None, keyfile: Optional[str] = None, keypasswd: Optional[str] = None,
-                 allow_agent: bool = False, primitive: bool=False):
+                 password: Optional[str] = None, keyfile: Optional[str] = None, keyraw: Optional[str]= None, 
+                 keypasswd: Optional[str] = None, allow_agent: bool = False, primitive: bool=False):
         """
             :param identifier: The identifier that is used to reference this credential.  (required)
             :param categories: The categories of authentication that are supported by the credential
@@ -47,6 +47,7 @@ class SshCredential(BaseCredential):
                              keyfile parameter is provided or if 'allow_agent' is passed as 'True'.
             :param keyfile: The private key file to use for authentication with this credential.  A keyfile
                             is not required if a password was passed or if 'allow_agent' is passed as 'True'.
+            :param keyraw: The raw private key in base64 or other text encoded format.
             :param keypasswd: The password to decrypt the keyfile if required by the keyfile.
             :param allow_agent: Indicates if the SSH Agent can be used to authenticate connections.
             :param primitive: When True, simulate file transfers and directory services with ssh commands.
@@ -54,42 +55,51 @@ class SshCredential(BaseCredential):
         super().__init__(identifier=identifier, categories=categories, role=role)
 
         if "ssh" not in categories:
-            raise ValueError("The SshCredential should only be given credentials of category 'ssh'.")
+            raise ConfigurationError("The SshCredential should only be given credentials of category 'ssh'.")
         if len(username) == 0:
-            raise ValueError("The SshCredential constructor requires a 'username' parameter be provided.")
-        if password is None and keyfile is None and not allow_agent:
-            raise ValueError("The SshCredential constructor requires one of: 'password is not None', 'keyfile is not None', 'allow_agent == True'.")
+            raise ConfigurationError("The SshCredential constructor requires a 'username' parameter be provided.")
+        if password is None:
+            if not allow_agent:
+                if keyfile is None and keyraw is None:
+                    raise ConfigurationError("The SshCredential constructor requires one of: 'password is not None', 'keyfile is not None', 'keyraw is not None', 'allow_agent == True'.")
+                elif keyfile is not None and keyraw is not None:
+                    raise ConfigurationError("The SshCredential constructor should only have either a keyfile or keyraw parameter but not both.")
 
         self._username = username
         self._password = password
         self._keyfile = keyfile
+        self._keyraw = keyraw
         self._keypasswd = keypasswd
         self._allow_agent = allow_agent
         self._primitive = primitive
         return
 
     @property
-    def allow_agent(self):
+    def allow_agent(self) -> bool:
         return self._allow_agent
 
     @property
-    def keyfile(self):
+    def keyfile(self) -> Union[str, None]:
+        return self._keyfile
+    
+    @property
+    def keyraw(self) -> Union[str, None]:
         return self._keyfile
 
     @property
-    def keypasswd(self):
+    def keypasswd(self) -> Union[str, None]:
         return self._keypasswd
 
     @property
-    def password(self):
+    def password(self) -> Union[str, None]:
         return self._password
 
     @property
-    def primitive(self):
+    def primitive(self) -> bool:
         return self._primitive
 
     @property
-    def username(self):
+    def username(self) -> str:
         return self._username
 
     @classmethod
@@ -107,8 +117,13 @@ class SshCredential(BaseCredential):
         if "username" not in cred_info:
             errmsg_lines.append("    * missing 'username' parameter")
 
-        if "password" not in cred_info and "keyfile" not in cred_info and not allow_agent:
-                errmsg_lines.append("    * missing 'password' or 'keyfile' when allow_agent is 'False'")
+        if "password" not in cred_info:
+            if  not allow_agent:
+                if "keyfile" not in cred_info and "keyraw" not in cred_info:
+                    errmsg_lines.append("    * missing 'password' or 'keyfile' when allow_agent is 'False'")
+        
+        if "keyfile" in cred_info and "keyraw" in cred_info:
+            errmsg_lines.append("    * both 'keyfile' and 'keyraw' found in ssh credential.")
 
         if "keyfile" in cred_info:
             keyfile = os.path.abspath(os.path.expandvars(os.path.expanduser(cred_info["keyfile"])))

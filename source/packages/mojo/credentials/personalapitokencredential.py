@@ -41,9 +41,9 @@ class PersonalApiTokenCredential(BaseCredential):
         super().__init__(identifier=identifier, categories=categories, role=role)
 
         if "personal-api-token" not in categories:
-            raise ValueError("The PersonalApiTokenCredential should only be given credentials of category 'personal-api-token'.")
+            raise ConfigurationError("The PersonalApiTokenCredential should only be given credentials of category 'personal-api-token'.")
         if len(token) == 0:
-            raise ValueError("The PersonalApiTokenCredential constructor requires a 'token' parameter be provided.")
+            raise ConfigurationError("The PersonalApiTokenCredential constructor requires a 'token' parameter be provided.")
         
         self._username = username
         self._token = token

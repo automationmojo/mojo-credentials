@@ -45,7 +45,7 @@ class AzureClientSecretCredential(BaseCredential):
         super().__init__(identifier=identifier, categories=categories, role=role)
 
         if "azure-client-secret" not in categories:
-            raise ValueError("The AzureClientSecretCredential should only be given credentials of category 'azure-client-secret'.")
+            raise ConfigurationError("The AzureClientSecretCredential should only be given credentials of category 'azure-client-secret'.")
 
         self._tenant_id = tenant_id
         self._client_id = client_id

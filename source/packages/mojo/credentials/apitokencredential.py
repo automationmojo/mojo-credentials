@@ -40,9 +40,9 @@ class ApiTokenCredential(BaseCredential):
         super().__init__(identifier=identifier, categories=categories, role=role)
 
         if "api-token" not in categories:
-            raise ValueError("The ApiTokenCredential should only be given credentials of category 'api-token'.")
+            raise ConfigurationError("The ApiTokenCredential should only be given credentials of category 'api-token'.")
         if len(token) == 0:
-            raise ValueError("The ApiTokenCredential constructor requires a 'token' parameter be provided.")
+            raise ConfigurationError("The ApiTokenCredential constructor requires a 'token' parameter be provided.")
         
         self._token = token
         return

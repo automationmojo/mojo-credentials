@@ -41,11 +41,11 @@ class AwsAccessKeyCredential(BaseCredential):
         super().__init__(identifier=identifier, categories=categories, role=role)
 
         if "aws-access-key" not in categories:
-            raise ValueError("The AwsAccessKey should only be given credentials of category 'aws-access-key'.")
+            raise ConfigurationError("The AwsAccessKeyCredential should only be given credentials of category 'aws-access-key'.")
         if len(keyid) == 0:
-            raise ValueError("The AwsAccessKey constructor requires a 'keyid' parameter be provided.")
+            raise ConfigurationError("The AwsAccessKeyCredential constructor requires a 'keyid' parameter be provided.")
         if len(secret) == 0:
-            raise ValueError("The AwsAccessKey constructor requires a 'secret' parameter be provided.")
+            raise ConfigurationError("The AwsAccessKeyCredential constructor requires a 'secret' parameter be provided.")
         
         self._keyid = keyid
         self._secret = secret
