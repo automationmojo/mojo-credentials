@@ -12,7 +12,7 @@ __copyright__ = "Copyright 2023, Myron W Walker"
 __credits__ = []
 
 
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 import os
 
@@ -83,3 +83,14 @@ class PublicKeyCredential(BaseCredential):
             raise ConfigurationError(errmsg) from None
 
         return
+    
+    def as_dict(self) -> Dict[str, Any]:
+        """
+            Returns a dictionary representation of this credential object.
+        """
+        rtnval = super().as_dict()
+
+        rtnval["public"] = self._public
+        rtnval["private"] = self._private
+
+        return rtnval

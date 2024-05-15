@@ -12,7 +12,7 @@ __copyright__ = "Copyright 2023, Myron W Walker"
 __credits__ = []
 
 
-from typing import List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 import os
 
@@ -142,6 +142,31 @@ class SshCredential(BaseCredential):
             raise ConfigurationError(errmsg) from None
 
         return
+    
+    def as_dict(self) -> Dict[str, Any]:
+        """
+            Returns a dictionary representation of this credential object.
+        """
+        rtnval = super().as_dict()
+
+        rtnval["username"] = self._username
+        rtnval["allow_agent"] = self._allow_agent
+        rtnval["pimitive"] = self._primitive
+
+        if self._password is not None:
+            rtnval["password"] =  self._password
+
+        if self._keyfile is not None:
+            rtnval["keyfile"] = self._keyfile
+        
+        if self._keypasswd is not None:
+            rtnval["keypasswd"] = self._keypasswd
+        
+        if self._keyraw is not None:
+            rtnval["keyraw"] = self._keyraw
+
+        return rtnval
+
 
 def is_ssh_credential(cred: BaseCredential):
     """

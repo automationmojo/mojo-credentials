@@ -12,7 +12,7 @@ __copyright__ = "Copyright 2023, Myron W Walker"
 __credits__ = []
 
 
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from mojo.errors.exceptions import ConfigurationError
 
@@ -53,3 +53,16 @@ class BaseCredential:
     @property
     def role(self):
         return self._role
+    
+    def as_dict(self) -> Dict[str, Any]:
+        """
+            Returns a dictionary representation of this credential object.
+        """
+
+        rtnval = {
+            "identifier": self._identifier,
+            "categories": self._categories,
+            "rolse": self._role
+        }
+        
+        return rtnval
