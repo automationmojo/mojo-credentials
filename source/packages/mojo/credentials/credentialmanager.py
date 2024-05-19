@@ -112,7 +112,7 @@ class CredentialManager:
                         elif "categories" in credential:
                             categories = credential["categories"]
 
-                            if not isinstance(category, str):
+                            if isinstance(categories, str):
                                 categories = [ categories ]
 
 
@@ -140,6 +140,7 @@ class CredentialManager:
                                 raise ConfigurationError(errmsg)
 
                         else:
+                            category = categories[0]
 
                             if category == "api-token":
                                 ApiTokenCredential.validate(credential)
@@ -228,19 +229,55 @@ class CredentialManager:
                 errmsg = f"All credentials must have an identifier field. cinfo={cinfo}"
                 errors.append(errmsg)
 
-            if "category" in cinfo:
-                category = cinfo["category"]
-                if category == "basic":
-                    child_errors, child_warnings =  self._validate_credential_basic(cinfo)
-                    errors.extend(child_errors)
-                    warnings.extend(child_warnings)
-                elif category == "ssh":
-                    child_errors, child_warnings =  self._validate_credential_ssh(cinfo)
-                    errors.extend(child_errors)
-                    warnings.extend(child_warnings)
+            if "category" in cinfo or "categories" in cinfo:
+
+                if 'category' in cinfo and 'categories' in cinfo:
+                    errmsg = "A credetial should not have both a 'category' and 'categories' field.  The newest method is to just use a 'catagories' field."
+                    raise ConfigurationError(errmsg)
+
+                categories = None
+
+                if "category" in cinfo:
+                    category = cinfo["category"]
+                    del cinfo["category"]
+
+                    if isinstance(category, list):
+                        categories = category
+                    else:
+                        categories = [ category]
+
+                    cinfo["categories"] = categories
+            
+                elif "categories" in cinfo:
+                    categories = cinfo["categories"]
+                    if isinstance(categories, str):
+                        categories = [ categories]
+
+                if len(categories) > 1:
+                    for category in categories:
+                        if category not in ['basic', 'ssh', 'rest-basic']:
+                            errmsg = "The only categories of credentials that can be used together are ['basic', 'ssh (with password)', 'rest-basic']"
+                            raise ConfigurationError(errmsg)
+                    
+                    if "username" not in cinfo or "password" not in cinfo:
+                        errmsg = "Multi category credentials must have common attributes. Currently, the only common credential supporte is a 'username' and 'password' credential."
+                        raise ConfigurationError(errmsg)
+
                 else:
-                    warnmsg = f"Unknown credential category={category}. info={cinfo}"
-                    warnings.append(warnmsg)
+                    category = categories[0]
+
+                    if category == "basic":
+                        child_errors, child_warnings =  self._validate_credential_basic(cinfo)
+                        errors.extend(child_errors)
+                        warnings.extend(child_warnings)
+                    elif category == "ssh":
+                        child_errors, child_warnings =  self._validate_credential_ssh(cinfo)
+                        errors.extend(child_errors)
+                        warnings.extend(child_warnings)
+                    else:
+                        warnmsg = f"Unknown credential category={category}. info={cinfo}"
+                        warnings.append(warnmsg)
+
             else:
                 errmsg = "Credential info has no category. info=%r" % cinfo
                 errors.append(errmsg)
@@ -291,9 +328,10 @@ class CredentialManager:
             errmsg = "SSH credentials must have a 'username' field."
             errors.append(errmsg)
 
-        if "password" not in cred and "keyfile" not in cred:
-            errmsg = "SSH credentials must have a 'password' or 'keyfile' field."
-            errors.append(errmsg)
+        if "password" not in cred and "keyfile" not in cred and "keyraw" not in cred:
+            if "allow_agent" not in cred or cred["allow_agent"] == False:
+                errmsg = "SSH credentials must have a 'password, keyfile, keyraw, or allow_agent == True' field."
+                errors.append(errmsg)
         elif "keyfile" in cred:
             keyfile = os.path.abspath(os.path.expanduser(os.path.expandvars(cred["keyfile"])))
             if not os.path.exists(keyfile):
