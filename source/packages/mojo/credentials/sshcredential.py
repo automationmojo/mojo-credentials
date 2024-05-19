@@ -35,7 +35,7 @@ class SshCredential(BaseCredential):
             "allow_agent": False
     """
 
-    def __init__(self, *, identifier: str, categories: List[str], role: Optional[str] = "priv", username: str = "",
+    def __init__(self, *, identifier: str, categories: List[str], username: str, role: Optional[str] = "priv",
                  password: Optional[str] = None, keyfile: Optional[str] = None, keyraw: Optional[str]= None, 
                  keypasswd: Optional[str] = None, allow_agent: bool = False, primitive: bool=False):
         """
@@ -168,10 +168,12 @@ class SshCredential(BaseCredential):
         return rtnval
 
 
-def is_ssh_credential(cred: BaseCredential):
+def is_ssh_credential(cred: BaseCredential) -> bool:
     """
         Checks to see if a credential is a credential that has been designated
         for use with SSH.
+
+        :returns: A boolean value representing if the credential has been marked as an SSH credential.
     """
     rtnval = False
     

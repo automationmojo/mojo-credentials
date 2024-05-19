@@ -91,59 +91,96 @@ class CredentialManager:
                             raise ConfigurationError(errmsg)
                         ident = credential["identifier"]
 
-                        if "category" not in credential:
-                            errmsg = "Credential items in 'environment/credentials' must have an 'category' member."
+                        if "category" not in credential and "categories" not in credential:
+                            errmsg = "Credential items in 'environment/credentials' must have an 'category' or categories member."
                             raise ConfigurationError(errmsg)
-                        category = credential["category"]
-                        del credential["category"]
 
-                        if isinstance(category, list):
-                            categories = list(category)
+                        # If we find a 'category' or 'categories' parameter we need to pass the categories along as a single
+                        # list parameter 
+                        categories = []
+                        if "category" in credential:
+                            category = credential["category"]
+                            del credential["category"]
+
+                            if isinstance(category, list):
+                                categories = category
+                            else:
+                                categories = [ category]
+
                             credential["categories"] = categories
+                        
+                        elif "categories" in credential:
+                            categories = credential["categories"]
 
-                            username = credential["username"]
-                            password = credential["password"]
+                            if not isinstance(category, str):
+                                categories = [ categories ]
 
-                            BasicCredential.validate(credential)
-                            credobj = BasicCredential(identifier=ident, categories=categories,
-                                                        username=username, password=password)
-                            self._credentials[ident] = credobj
+
+                        # If the credential has more than one category, we create a simple `BasicCredential` which has a common set of
+                        # attributes.  The only credential we support with common attributes is a simple 'username' and 'password' credetial 
+                        if len(categories) > 1:
+
+                            for category in categories:
+                                if category not in ['basic', 'ssh', 'rest-basic']:
+                                    errmsg = "The only categories of credentials that can be used together are ['basic', 'ssh (with password)', 'rest-basic']"
+                                    raise ConfigurationError(errmsg)
+
+                            if "username" in credential and "password" in credential:
+
+                                username = credential["username"]
+                                password = credential["password"]
+
+                                BasicCredential.validate(credential)
+                                credobj = BasicCredential(identifier=ident, categories=categories, username=username, password=password)
+                                
+                                self._credentials[ident] = credobj
+                            
+                            else:
+                                errmsg = "Multi category credentials must have common attributes. Currently, the only common credential supporte is a 'username' and 'password' credential."
+                                raise ConfigurationError(errmsg)
 
                         else:
-                            credential["categories"] = [category]
 
                             if category == "api-token":
                                 ApiTokenCredential.validate(credential)
                                 credobj = ApiTokenCredential(**credential)
                                 self._credentials[ident] = credobj
+
                             elif category == "aws-access-key":
                                 AwsAccessKeyCredential.validate(credential)
                                 credobj = AwsAccessKeyCredential(**credential)
                                 self._credentials[ident] = credobj
+
                             elif category == 'azure-client-secret':
                                 AzureClientSecretCredential.validate(credential)
                                 credobj = AzureClientSecretCredential(**credential)
                                 self._credentials[ident] = credobj
+
                             elif category == "basic" or category == "rest-basic":
                                 BasicCredential.validate(credential)
                                 credobj = BasicCredential(**credential)
                                 self._credentials[ident] = credobj
+
                             elif category == "personal-api-token":
                                 PersonalApiTokenCredential.validate(credential)
                                 credobj = PersonalApiTokenCredential(**credential)
                                 self._credentials[ident] = credobj
+
                             elif category == "public-key":
                                 PublicKeyCredential.validate(credential)
                                 credobj = PublicKeyCredential(**credential)
                                 self._credentials[ident] = credobj
+
                             elif category == "ssh":
                                 SshCredential.validate(credential)
                                 credobj = SshCredential(**credential)
                                 self._credentials[ident] = credobj
+
                             elif category == "wifi-choice":
                                 WifiChoiceCredential.validate(credential)
                                 credobj = WifiChoiceCredential(**credential)
                                 self._credentials[ident] = credobj
+                                
                             else:
                                 warnmsg = f"Unknown category '{category}' found in credential '{ident}'"
                                 logger.warn(warnmsg)
