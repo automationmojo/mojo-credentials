@@ -12,7 +12,7 @@ __copyright__ = "Copyright 2023, Myron W Walker"
 __credits__ = []
 
 
-from typing import List, Optional, Union
+from typing import Dict, List, Optional, Union
 
 import logging
 import os
@@ -211,7 +211,7 @@ class CredentialManager:
 
         return
 
-    def _validate_credentials(self, cred_list):
+    def _validate_credentials(self, cred_list: List[Dict[str, str]]):
         errors = []
         warnings = []
 
@@ -284,7 +284,7 @@ class CredentialManager:
 
         return errors, warnings
 
-    def _validate_credential_basic(self, cred):
+    def _validate_credential_basic(self, cred: Dict[str, str]):
         """
             Validates the non-common fields of a 'basic' credential.
         """
@@ -305,7 +305,7 @@ class CredentialManager:
 
         return errors, warnings
 
-    def _validate_credential_ssh(self, cred):
+    def _validate_credential_ssh(self, cred: Dict[str, str]):
         """
             Validates the non-common fields of an 'ssh' credential.
         """
