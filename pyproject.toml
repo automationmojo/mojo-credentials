@@ -17,7 +17,9 @@ packages = [{include="mojo", from="source/packages"}]
 
 [tool.poetry.dependencies]
 python = ">=3.9,<4.0"
+pyyaml = "^6.0.2"
 mojo-errors = ">=2.0.0 <2.1.0"
+
 
 [tool.poetry.group.dbio.dependencies]
 
